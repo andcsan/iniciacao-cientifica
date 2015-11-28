@@ -14,10 +14,11 @@ input = data[:, : columns - 1]
 target = data[:, columns - 1]
 
 print("Treinando")
-net.train_tnc(input[:80], target[:80], maxfun=5000, messages=1)
+lim = len(input) - len(input) / 4
+net.train_tnc(input[:lim], target[:lim], maxfun=5000, messages=1)
 
 print("Testando")
-output, regression = net.test(input[80:], target[80:], iprint=2)
+output, regression = net.test(input[lim:], target[lim:], iprint=2)
 
 print("Salvando rede treinada")
 save_dir = "../networks/"
