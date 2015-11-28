@@ -18,7 +18,7 @@ corte_exts = ".png"
 corte_tam = 256
 
 # define o deslocamento entre cada corte
-offset = 64
+offset = 32
 
 # cria as pastas para armazenar as imagens cortadas
 corte_dir = "../images/cuts/offset/"
