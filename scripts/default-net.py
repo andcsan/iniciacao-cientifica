@@ -10,6 +10,6 @@ _out_ = int(sys.argv[4])  # quantidade de saídas
 
 connection = mlgraph((_in_, _hidden1_, _hidden2_, _out_))
 net = ffnet(connection)
-savenet(net, "../networks/default-net")
+savenet(net, "../redes/default-net")
 
 print("Tempo de execução", time.time() - tempo)
