@@ -1,33 +1,61 @@
-from ffnet import ffnet, mlgraph, readdata, savenet, loadnet
-from sklearn.cross_validation import StratifiedKFold
-import time
+from ffnet import readdata, savenet, loadnet
+from numpy import genfromtxt
 
-tempo = time.time()
+import time, sys, math
 
-data_dir = "../database/"
-data_nome = "training-data.dat"
-data = readdata(data_dir + data_nome, delimiter=" ")
-rows, columns = data.shape
 
-net = loadnet("../networks/default-net")
+def roundBias(num, bias=0.5):
+    """
+    Arredonda um numero de acorda com um limiar definido
+    """
+    if num % 1 > bias:
+        return math.ceil(num)
+    else:
+        return math.floor(num)
 
-input = data[:, : columns - 1]
-target = data[:, columns - 1]
 
-skf = StratifiedKFold(target, n_folds=4)
+tempo = time.time()  # tempo inicial
 
-cont = 1
-for train_index, test_index in skf:
-    print("Treinando")
-    net.train_tnc(input[train_index], target[train_index], maxfun=5000, messages=1)
+netloc = sys.argv[1]  # local da rede padrão
+dadosloc = sys.argv[2]  # local dos dados de treino
+foldloc = sys.argv[3]  # local dos fold a serem abertos
+saveloc = sys.argv[4]  # local para salvar os treinamentos
 
-    print("Testando")
-    output, regression = net.test(input[test_index], target[test_index], iprint=2)
+dados = readdata(dadosloc, delimiter=" ")  # lendo dados de treinamento
+rows, columns = dados.shape
 
-    print("Salvando rede StratifiedKFold treinada")
-    save_dir = "../networks/"
-    save_nome = "strat-cross-val-fold-" + repr(cont) + "-trained-net"
-    savenet(net, save_dir + save_nome)
-    cont = cont + 1
+input = dados[:, : columns - 1]  # dados de entrada
+target = dados[:, columns - 1]  # dados de alvo
 
-print("Tempo de execucao:", time.time() - tempo)
+ind_treino = genfromtxt(foldloc, delimiter=" ", skip_footer=1, dtype="int")
+ind_teste = genfromtxt(foldloc, delimiter=" ", skip_header=1, dtype="int")
+
+TP, TN = 0, 0  # TruePositive e TrueNegative
+FP, FN = 0, 0  # FalsePositive e FalseNegative
+
+net = loadnet(netloc)  # carrega rede padrão
+
+# treina a rede com os índices de treino
+net.train_tnc(input[ind_treino], target[ind_treino], maxfun=1000, messages=1, nproc=4)
+
+# teste a rede com os índices de teste
+output, regression = net.test(input[ind_teste], target[ind_teste], iprint=2)
+
+# cálculo de TruePositive FalseNegative
+for alvo, saida in zip(target[ind_teste], output):
+    saida = roundBias(saida, bias=0.8)
+    if alvo == 1 and saida == 1:
+        TP += 1
+    elif alvo == 1 and saida == 0:
+        FN += 1
+    elif alvo == 0 and saida == 1:
+        FP += 1
+    elif alvo == 0 and saida == 0:
+        TN += 1
+
+print("TP:", TP, "TN:", TN)
+print("FP:", FP, "FN:", FN)
+
+savenet(net, saveloc)  # salva a rede treinada com o fold
+
+print("Tempo de execução: ", time.time() - tempo)

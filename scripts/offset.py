@@ -1,18 +1,14 @@
-import cv2
-import numpy
-import sys
-import os
+import cv2, sys, os
 
 # local da imagem a ser aberta
-img_dir = "../images/grouped/"
-img_nome = sys.argv[1]
-img_dir = img_dir + img_nome
+imgloc = sys.argv[1]
+cortedir = sys.argv[2]
 
-# abre a imagem no local definido e coleta suas dimensoes
-img = cv2.imread(img_dir, 1)
+# abre a imagem no local definido e coleta suas dimensões
+img = cv2.imread(imgloc, 1)
 img_h, img_w, img_col = img.shape
 
-# define o nome da imagem cortada, a extensao e o tamanho do corte
+# define o nome da imagem cortada, a extensão e o tamanho do corte
 corte_nome = "offset"
 corte_exts = ".png"
 corte_tam = 256
@@ -21,17 +17,12 @@ corte_tam = 256
 offset = 32
 
 # cria as pastas para armazenar as imagens cortadas
-corte_dir = "../images/cuts/offset/"
-if not os.path.exists(corte_dir):
-    os.mkdir(corte_dir)
+if not os.path.exists(cortedir):
+    os.mkdir(cortedir)
 
-pasta = corte_dir + img_nome[: len(img_nome) - 4]
-if not os.path.exists(pasta):
-    os.mkdir(pasta)
+os.chdir(cortedir)
 
-os.chdir(pasta)
-
-# lacos de corte
+# laços de corte
 i, j = 0, 0
 for linha in range(0, img_h - corte_tam, offset):
     for coluna in range(0, img_w - corte_tam, offset):
@@ -40,10 +31,10 @@ for linha in range(0, img_h - corte_tam, offset):
 
         if len(corte_atual) and len(corte_atual[0]) == corte_tam:
             cv2.imwrite(
-                corte_nome + "_" + repr(i) + "_" + repr(j) + corte_exts, corte_atual
+                corte_nome + "_" + str(i) + "_" + str(j) + corte_exts, corte_atual
             )
         else:
-            print("Imagem fora de padrao", corte_tam)
+            print("Imagem fora de padrão", corte_tam)
 
         j += 1
     i += 1

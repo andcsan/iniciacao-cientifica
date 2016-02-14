@@ -1,40 +1,36 @@
-import numpy
-import cv2
-import os
-import sys
+from random import shuffle
+from cv2 import imread
 
-# img_dir = '../banco-imagens/recortes/mix/'
-# img_dir = '../banco-imagens/teste/'
+import numpy as np
+import os, sys
 
-img_dir = sys.argv[1]
+posdir = sys.argv[1]  # diretório das imagens positivas
+negdir = sys.argv[2]  # diretório das imagens negativas
+saveloc = sys.argv[3]  # local para salvar o arquivo de dados
 
-print("Carregando lista de imagens")
-img_lista = os.listdir(img_dir)
+nomespos = os.listdir(posdir)  # lista de nomes de imagens positivas
+nomesneg = os.listdir(negdir)  # lista de nomes de imagens negativas
 
-print("Criando banco de treinamento")
-treino_dir = "../database/"
-treino_data = open(treino_dir + "training-data.dat", "wb")
+# lista de diretórios de cada imagem positiva
+listapos = [posdir + x for x in nomespos]
 
-print("Inserindo targets correspondentes")
-for i in range(0, len(img_lista), 1):
+# lista de diretórios de cada imagem negativa
+listaneg = [negdir + x for x in nomesneg]
 
-    dir_atual = img_dir + img_lista[i]
-    img_atual = cv2.imread(dir_atual, 0)
+arq = open(saveloc, mode="wb")
 
-    if img_lista[i][0] == "b":
-        target = 1
-        dado_atual = numpy.append(img_atual.ravel(), target)
-    elif img_lista[i][0] == "o":
+alldir = listapos + listaneg  # lista com todos os diretórios de cada imagem
+shuffle(alldir)  # embaralha a lista
+
+for atualdir in alldir:
+    img = imread(atualdir, 0)  # carrega a imagem em grayscale
+
+    if "neg" in atualdir:
         target = 0
-        dado_atual = numpy.append(img_atual.ravel(), target)
+        dado = np.append(img.ravel(), target)
+    elif "pos" in atualdir:
+        target = 1
+        dado = np.append(img.ravel(), target)
 
-    print(
-        repr(i + 1)
-        + " Imagem: "
-        + img_lista[i]
-        + " .................... Target: "
-        + repr(target)
-    )
-
-    dado_atual = dado_atual.reshape(1, len(dado_atual))
-    numpy.savetxt(treino_data, dado_atual, fmt="%d")
+    dado = dado.reshape((1, dado.size))
+    np.savetxt(arq, dado, fmt="%d")
