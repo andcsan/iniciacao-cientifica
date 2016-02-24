@@ -1,6 +1,8 @@
 from ffnet import readdata, savenet, loadnet
 from numpy import genfromtxt
+from sklearn import metrics
 
+import matplotlib.pyplot as plt
 import time, sys, math
 
 
@@ -59,3 +61,15 @@ print("FP:", FP, "FN:", FN)
 savenet(net, saveloc)  # salva a rede treinada com o fold
 
 print("Tempo de execução: ", time.time() - tempo)
+
+# calculando curva roc
+true_array = target[ind_teste]
+score_array = output.ravel()
+
+fpr, tpr, thresholds = metrics.roc_curve(true_array, score_array, pos_label=1)
+
+# plotando a curva ROC
+plt.plot([float(i) for i in fpr], [float(i) for i in tpr], "ro-")
+plt.xlabel("fpr")
+plt.ylabel("tpr")
+plt.show()
