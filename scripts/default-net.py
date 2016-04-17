@@ -7,9 +7,10 @@ _in_ = int(sys.argv[1])  # quantidade de entradas da rede
 _hidden1_ = int(sys.argv[2])  # quantidade na primeira hidden layer
 _hidden2_ = int(sys.argv[3])  # quantidade na segunda hidden layer
 _out_ = int(sys.argv[4])  # quantidade de saídas
+_nome_ = sys.argv[5]  # nome da rede
 
 connection = mlgraph((_in_, _hidden1_, _hidden2_, _out_))
 net = ffnet(connection)
-savenet(net, "../redes/default-net")
+savenet(net, _nome_)
 
 print("Tempo de execução", time.time() - tempo)

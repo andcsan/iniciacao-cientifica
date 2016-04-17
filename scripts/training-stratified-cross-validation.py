@@ -1,7 +1,7 @@
 from ffnet import readdata, savenet, loadnet
 from numpy import genfromtxt
 from sklearn import metrics
-
+from math import sqrt, pow
 import matplotlib.pyplot as plt
 import time, sys, math
 
@@ -21,7 +21,6 @@ tempo = time.time()  # tempo inicial
 netloc = sys.argv[1]  # local da rede padrão
 dadosloc = sys.argv[2]  # local dos dados de treino
 foldloc = sys.argv[3]  # local dos fold a serem abertos
-saveloc = sys.argv[4]  # local para salvar os treinamentos
 
 dados = readdata(dadosloc, delimiter=" ")  # lendo dados de treinamento
 rows, columns = dados.shape
@@ -38,14 +37,14 @@ FP, FN = 0, 0  # FalsePositive e FalseNegative
 net = loadnet(netloc)  # carrega rede padrão
 
 # treina a rede com os índices de treino
-net.train_tnc(input[ind_treino], target[ind_treino], maxfun=1000, messages=1, nproc=4)
+net.train_tnc(input[ind_treino], target[ind_treino], maxfun=5000, messages=1, nproc=6)
 
 # teste a rede com os índices de teste
 output, regression = net.test(input[ind_teste], target[ind_teste], iprint=2)
 
 # cálculo de TruePositive FalseNegative
 for alvo, saida in zip(target[ind_teste], output):
-    saida = roundBias(saida, bias=0.8)
+    saida = roundBias(saida, bias=0.5)
     if alvo == 1 and saida == 1:
         TP += 1
     elif alvo == 1 and saida == 0:
@@ -58,8 +57,6 @@ for alvo, saida in zip(target[ind_teste], output):
 print("TP:", TP, "TN:", TN)
 print("FP:", FP, "FN:", FN)
 
-savenet(net, saveloc)  # salva a rede treinada com o fold
-
 print("Tempo de execução: ", time.time() - tempo)
 
 # calculando curva roc
@@ -68,8 +65,19 @@ score_array = output.ravel()
 
 fpr, tpr, thresholds = metrics.roc_curve(true_array, score_array, pos_label=1)
 
+# limiar ótimo distância euclidiana
+deuc = [sqrt(pow(x - 0, 2) + pow(y - 1, 2)) for x, y in zip(fpr, tpr)]
+print("Distância euclidiana", deuc)
+print("Menor distância euclidiana: ", min(deuc))
+
+# limiar ótimo distância Younden
+dyoun = [y - x for x, y in zip(fpr, tpr)]
+print("Distância Younden:", dyoun)
+print("Maior distância Younden: ", max(dyoun))
+
 # plotando a curva ROC
 plt.plot([float(i) for i in fpr], [float(i) for i in tpr], "ro-")
+plt.plot([0, 1], [0, 1])
 plt.xlabel("fpr")
 plt.ylabel("tpr")
 plt.show()

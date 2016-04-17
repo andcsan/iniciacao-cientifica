@@ -1,5 +1,4 @@
 from sklearn.cross_validation import StratifiedKFold
-
 import numpy as np
 import sys
 

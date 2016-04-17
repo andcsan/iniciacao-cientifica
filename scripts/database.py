@@ -1,6 +1,5 @@
 from random import shuffle
 from cv2 import imread
-
 import numpy as np
 import os, sys
 
